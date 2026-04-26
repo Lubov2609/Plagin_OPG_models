@@ -1,0 +1,12 @@
+torch
+torchvision
+pillow
+opencv-python
+numpy
+watchdog
+fastapi
+uvicorn
+python-multipart
+jinja2
+watchdog
+pystray

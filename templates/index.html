@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Анализ ортопантомограммы</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+<div class="page">
+
+    <header class="header">
+        <div>
+            <h1>Система анализа ортопантомограмм</h1>
+            <p>Автоматическое выявление признаков кариеса, пульпита и оценка 8-х зубов</p>
+        </div>
+        <div class="badge">OPG AI Plugin</div>
+    </header>
+
+    <section class="panel upload-panel">
+        <h2>Загрузка снимка</h2>
+
+        <form action="/analyze-page" method="post" enctype="multipart/form-data">
+            <label class="file-box">
+                <span>Выберите изображение ОПТГ</span>
+                <input type="file" name="file" accept=".jpg,.jpeg,.png,.bmp,.tif,.tiff" required>
+            </label>
+
+            <button type="submit">Проанализировать</button>
+        </form>
+
+        {% if error %}
+            <div class="error">
+                Ошибка анализа: {{ error }}
+            </div>
+        {% endif %}
+    </section>
+
+    {% if result %}
+    <section class="grid">
+
+        <div class="panel image-panel">
+            <h2>Исходный снимок</h2>
+            <img src="{{ image_url }}" alt="Ортопантомограмма">
+            <p class="filename">{{ filename }}</p>
+        </div>
+
+        <div class="panel result-panel">
+            <h2>Результаты анализа</h2>
+
+            <div class="result-card {% if result.caries.detected %}danger{% else %}success{% endif %}">
+                <div class="result-title">
+                    {{ result.caries.title }}
+                </div>
+                <div class="result-status">
+                    {{ result.caries.status }}
+                </div>
+                <div class="progress">
+                    <div style="width: {{ result.caries.confidence_percent }}%;"></div>
+                </div>
+                <div class="confidence">
+                    Уверенность: {{ result.caries.confidence_percent }}%
+                </div>
+            </div>
+
+            <div class="result-card {% if result.pulpitis.detected %}danger{% else %}success{% endif %}">
+                <div class="result-title">
+                    {{ result.pulpitis.title }}
+                </div>
+                <div class="result-status">
+                    {{ result.pulpitis.status }}
+                </div>
+                <div class="progress">
+                    <div style="width: {{ result.pulpitis.confidence_percent }}%;"></div>
+                </div>
+                <div class="confidence">
+                    Уверенность: {{ result.pulpitis.confidence_percent }}%
+                </div>
+            </div>
+
+            <div class="result-card info">
+                <div class="result-title">
+                    {{ result.wisdom_teeth.title }}
+                </div>
+                <div class="result-status">
+                    {{ result.wisdom_teeth.class_name }}
+                </div>
+                <div class="progress">
+                    <div style="width: {{ result.wisdom_teeth.confidence_percent }}%;"></div>
+                </div>
+                <div class="confidence">
+                    Уверенность: {{ result.wisdom_teeth.confidence_percent }}%
+                </div>
+            </div>
+
+            <div class="result-card warning">
+                <div class="result-title">
+                    {{ result.impacted_wisdom_teeth.title }}
+                </div>
+                <div class="result-status">
+                    {{ result.impacted_wisdom_teeth.class_name }}
+                </div>
+                <div class="progress">
+                    <div style="width: {{ result.impacted_wisdom_teeth.confidence_percent }}%;"></div>
+                </div>
+                <div class="confidence">
+                    Уверенность: {{ result.impacted_wisdom_teeth.confidence_percent }}%
+                </div>
+            </div>
+
+            {% if result_file %}
+                <div class="saved">
+                    Результат сохранён в файл: <b>{{ result_file }}</b>
+                </div>
+            {% endif %}
+        </div>
+
+    </section>
+
+    <section class="panel">
+        <h2>Интерпретация результата</h2>
+
+        <div class="note">
+            Значения вероятности показывают степень уверенности модели.
+            Для бинарных признаков используется порог 50%.
+            Если вероятность выше 50%, признак считается обнаруженным.
+        </div>
+
+        <div class="note warning-note">
+            Результаты анализа являются вспомогательными и не заменяют заключение врача-специалиста.
+        </div>
+    </section>
+    {% endif %}
+
+</div>
+</body>
+</html>
