@@ -18,7 +18,16 @@
     </header>
 
     <section class="panel upload-panel">
-        <h2>Загрузка снимка</h2>
+        <div class="panel-header">
+            <div>
+                <h2>Загрузка снимка</h2>
+                <p>{{ model_status }}</p>
+            </div>
+            <div class="learning-summary">
+                <span>Локальный датасет: <b>{{ dataset_count }}</b></span>
+                <span>Ожидает дообучения: <b>{{ pending_count }}</b></span>
+            </div>
+        </div>
 
         <form action="/analyze-page" method="post" enctype="multipart/form-data">
             <label class="file-box">
@@ -29,9 +38,18 @@
             <button type="submit">Проанализировать</button>
         </form>
 
+        {% if learning_settings.last_training_message %}
+            <div class="training-state {{ learning_settings.last_training_status }}">
+                {{ learning_settings.last_training_message }}
+                {% if learning_settings.last_training_at %}
+                    <span>{{ learning_settings.last_training_at }}</span>
+                {% endif %}
+            </div>
+        {% endif %}
+
         {% if error %}
             <div class="error">
-                Ошибка анализа: {{ error }}
+                Ошибка: {{ error }}
             </div>
         {% endif %}
     </section>
@@ -43,74 +61,116 @@
             <h2>Исходный снимок</h2>
             <img src="{{ image_url }}" alt="Ортопантомограмма">
             <p class="filename">{{ filename }}</p>
+
+            <div class="doctor-panel">
+                <div class="doctor-info">
+                    <h2>Разметка врача</h2>
+                    <p>Проверьте результат модели и заполните фактические признаки по снимку. Эти данные сохраняются только на этом компьютере и используются для локального дообучения.</p>
+                </div>
+
+                <form class="doctor-form" action="/doctor-label" method="post">
+                    <input type="hidden" name="image_name" value="{{ filename }}">
+
+                    <div class="form-row">
+                        <label>Кариес</label>
+                        <select name="caries" required>
+                            <option value="1" {% if result.caries.detected %}selected{% endif %}>Да</option>
+                            <option value="0" {% if not result.caries.detected %}selected{% endif %}>Нет</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <label>Пульпит</label>
+                        <select name="pulpitis" required>
+                            <option value="1" {% if result.pulpitis.detected %}selected{% endif %}>Да</option>
+                            <option value="0" {% if not result.pulpitis.detected %}selected{% endif %}>Нет</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <label>Количество 8-х зубов</label>
+                        <input type="number" name="wisdom_teeth_count" min="0" max="4" value="{{ result.wisdom_teeth.class_id }}" required>
+                    </div>
+
+                    <div class="form-row">
+                        <label>Ретинированные 8-е зубы</label>
+                        <input type="number" name="impacted_wisdom_teeth_count" min="0" max="4" value="{{ result.impacted_wisdom_teeth.class_id }}" required>
+                    </div>
+
+                    <div class="form-row full">
+                        <label>Комментарий врача</label>
+                        <textarea name="doctor_comment" rows="4" placeholder="Дополнительное клиническое уточнение"></textarea>
+                    </div>
+
+                    <div class="train-settings">
+                        <label>Запуск локального дообучения</label>
+                        <div class="radio-row">
+                            <label>
+                                <input type="radio" name="train_trigger_count" value="1" {% if learning_settings.train_trigger_count == 1 %}checked{% endif %}>
+                                после каждого снимка
+                            </label>
+                            <label>
+                                <input type="radio" name="train_trigger_count" value="8" {% if learning_settings.train_trigger_count != 1 %}checked{% endif %}>
+                                после 8 снимков
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit">Сохранить разметку</button>
+
+                    {% if label_message %}
+                        <div class="saved">{{ label_message }}</div>
+                    {% endif %}
+
+                    {% if training_message %}
+                        <div class="training-state running">{{ training_message }}</div>
+                    {% endif %}
+                </form>
+            </div>
         </div>
 
         <div class="panel result-panel">
             <h2>Результаты анализа</h2>
 
             <div class="result-card {% if result.caries.detected %}danger{% else %}success{% endif %}">
-                <div class="result-title">
-                    {{ result.caries.title }}
-                </div>
-                <div class="result-status">
-                    {{ result.caries.status }}
-                </div>
+                <div class="result-title">{{ result.caries.title }}</div>
+                <div class="result-status">{{ result.caries.status }}</div>
                 <div class="progress">
                     <div style="width: {{ result.caries.confidence_percent }}%;"></div>
                 </div>
-                <div class="confidence">
-                    Уверенность: {{ result.caries.confidence_percent }}%
-                </div>
+                <div class="confidence">Уверенность: {{ result.caries.confidence_percent }}%</div>
             </div>
 
             <div class="result-card {% if result.pulpitis.detected %}danger{% else %}success{% endif %}">
-                <div class="result-title">
-                    {{ result.pulpitis.title }}
-                </div>
-                <div class="result-status">
-                    {{ result.pulpitis.status }}
-                </div>
+                <div class="result-title">{{ result.pulpitis.title }}</div>
+                <div class="result-status">{{ result.pulpitis.status }}</div>
                 <div class="progress">
                     <div style="width: {{ result.pulpitis.confidence_percent }}%;"></div>
                 </div>
-                <div class="confidence">
-                    Уверенность: {{ result.pulpitis.confidence_percent }}%
-                </div>
+                <div class="confidence">Уверенность: {{ result.pulpitis.confidence_percent }}%</div>
             </div>
 
             <div class="result-card info">
-                <div class="result-title">
-                    {{ result.wisdom_teeth.title }}
-                </div>
-                <div class="result-status">
-                    {{ result.wisdom_teeth.class_name }}
-                </div>
+                <div class="result-title">{{ result.wisdom_teeth.title }}</div>
+                <div class="result-status">{{ result.wisdom_teeth.class_name }}</div>
                 <div class="progress">
                     <div style="width: {{ result.wisdom_teeth.confidence_percent }}%;"></div>
                 </div>
-                <div class="confidence">
-                    Уверенность: {{ result.wisdom_teeth.confidence_percent }}%
-                </div>
+                <div class="confidence">Уверенность: {{ result.wisdom_teeth.confidence_percent }}%</div>
             </div>
 
             <div class="result-card warning">
-                <div class="result-title">
-                    {{ result.impacted_wisdom_teeth.title }}
-                </div>
-                <div class="result-status">
-                    {{ result.impacted_wisdom_teeth.class_name }}
-                </div>
+                <div class="result-title">{{ result.impacted_wisdom_teeth.title }}</div>
+                <div class="result-status">{{ result.impacted_wisdom_teeth.class_name }}</div>
                 <div class="progress">
                     <div style="width: {{ result.impacted_wisdom_teeth.confidence_percent }}%;"></div>
                 </div>
-                <div class="confidence">
-                    Уверенность: {{ result.impacted_wisdom_teeth.confidence_percent }}%
-                </div>
+                <div class="confidence">Уверенность: {{ result.impacted_wisdom_teeth.confidence_percent }}%</div>
             </div>
 
             {% if result_file %}
                 <div class="saved">
-                    Результат сохранён в файл: <b>{{ result_file }}</b>
+                    Результат сохранен в файл: <b>{{ result_file }}</b>
                 </div>
             {% endif %}
         </div>
@@ -121,9 +181,7 @@
         <h2>Интерпретация результата</h2>
 
         <div class="note">
-            Значения вероятности показывают степень уверенности модели.
-            Для бинарных признаков используется порог 50%.
-            Если вероятность выше 50%, признак считается обнаруженным.
+            Значения вероятности показывают степень уверенности модели. Для бинарных признаков используется порог 50%.
         </div>
 
         <div class="note warning-note">

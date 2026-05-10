@@ -16,3 +16,4 @@ dist_test/
 results/
 watch_folder/
 uploads/
+dist*
