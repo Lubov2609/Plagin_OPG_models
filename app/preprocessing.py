@@ -4,15 +4,11 @@ from torchvision import transforms
 
 class OPGPreprocessor:
     def __init__(self):
-        self.size = (448, 224)
+        # PIL size is (width, height); the training project uses H=448, W=896.
+        self.size = (896, 448)
 
         self.transform = transforms.Compose([
-            transforms.Resize(self.size),
             transforms.ToTensor(),
-            transforms.Normalize(
-                mean=[0.5],
-                std=[0.5]
-            )
         ])
 
     def preprocess(self, image_path):

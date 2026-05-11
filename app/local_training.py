@@ -82,18 +82,16 @@ def _keep_batch_norm_stable(model):
 
 def _compute_loss(outputs, targets):
     binary_loss = 0
-    for task_index in range(2):
+    for task_index in range(3):
         logits = outputs[task_index].squeeze(1)
         labels = targets[:, task_index].float()
         binary_loss = binary_loss + nn.functional.binary_cross_entropy_with_logits(logits, labels)
 
-    multiclass_loss = 0
-    for task_index in range(2):
-        logits = outputs[task_index + 2]
-        labels = targets[:, task_index + 2].long()
-        multiclass_loss = multiclass_loss + nn.functional.cross_entropy(logits, labels)
+    logits = outputs[3]
+    labels = targets[:, 3].long()
+    multiclass_loss = nn.functional.cross_entropy(logits, labels)
 
-    return (binary_loss / 2) + (multiclass_loss / 2)
+    return (binary_loss / 3) + multiclass_loss
 
 
 def train_local_model(

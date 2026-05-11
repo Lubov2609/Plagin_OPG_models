@@ -252,7 +252,7 @@ def add_doctor_form(parent, root, image_path, result, main_status_label=None):
 
     caries_var = tk.StringVar(value="Да" if result["caries"]["detected"] else "Нет")
     pulpitis_var = tk.StringVar(value="Да" if result["pulpitis"]["detected"] else "Нет")
-    wisdom_var = tk.IntVar(value=int(result["wisdom_teeth"]["class_id"]))
+    wisdom_var = tk.StringVar(value="Да" if result["wisdom_teeth"]["detected"] else "Нет")
     impacted_var = tk.IntVar(value=int(result["impacted_wisdom_teeth"]["class_id"]))
     settings = load_learning_settings(BASE_DIR)
     trigger_var = tk.IntVar(value=1 if settings["train_trigger_count"] == 1 else 8)
@@ -280,7 +280,7 @@ def add_doctor_form(parent, root, image_path, result, main_status_label=None):
     form.columnconfigure(1, weight=1)
     add_combo(0, "Кариес", caries_var, ["Нет", "Да"])
     add_combo(1, "Пульпит", pulpitis_var, ["Нет", "Да"])
-    add_combo(2, "Количество 8-х зубов", wisdom_var, [0, 1, 2, 3, 4])
+    add_combo(2, "Наличие 8-х зубов", wisdom_var, ["Нет", "Да"])
     add_combo(3, "Ретинированные 8-е зубы", impacted_var, [0, 1, 2, 3, 4])
 
     tk.Label(
@@ -340,7 +340,7 @@ def add_doctor_form(parent, root, image_path, result, main_status_label=None):
                 base_dir=BASE_DIR,
                 caries=1 if caries_var.get() == "Да" else 0,
                 pulpitis=1 if pulpitis_var.get() == "Да" else 0,
-                wisdom_teeth_count=wisdom_var.get(),
+                wisdom_teeth_count=1 if wisdom_var.get() == "Да" else 0,
                 impacted_wisdom_teeth_count=impacted_var.get(),
                 doctor_comment=comment.get("1.0", "end").strip(),
             )
@@ -480,9 +480,9 @@ def show_result_window(root, image_path, result, result_file, main_status_label=
     add_result_card(
         right_frame,
         "Наличие 8-х зубов",
-        result["wisdom_teeth"]["class_name"],
+        result["wisdom_teeth"]["status"],
         result["wisdom_teeth"]["confidence_percent"],
-        "#2563eb",
+        "#2563eb" if result["wisdom_teeth"]["detected"] else "#16a34a",
     )
 
     add_result_card(

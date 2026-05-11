@@ -88,8 +88,11 @@
                     </div>
 
                     <div class="form-row">
-                        <label>Количество 8-х зубов</label>
-                        <input type="number" name="wisdom_teeth_count" min="0" max="4" value="{{ result.wisdom_teeth.class_id }}" required>
+                        <label>Наличие 8-х зубов</label>
+                        <select name="wisdom_teeth_count" required>
+                            <option value="1" {% if result.wisdom_teeth.detected %}selected{% endif %}>Да</option>
+                            <option value="0" {% if not result.wisdom_teeth.detected %}selected{% endif %}>Нет</option>
+                        </select>
                     </div>
 
                     <div class="form-row">
@@ -152,7 +155,7 @@
 
             <div class="result-card info">
                 <div class="result-title">{{ result.wisdom_teeth.title }}</div>
-                <div class="result-status">{{ result.wisdom_teeth.class_name }}</div>
+                <div class="result-status">{{ result.wisdom_teeth.status }}</div>
                 <div class="progress">
                     <div style="width: {{ result.wisdom_teeth.confidence_percent }}%;"></div>
                 </div>

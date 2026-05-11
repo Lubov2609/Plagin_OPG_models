@@ -110,7 +110,7 @@ def _normalize_label_row(row):
             "image": row[0].strip(),
             "caries": _safe_int(row[1], 0, 1),
             "pulpitis": _safe_int(row[2], 0, 1),
-            "wisdom_teeth_count": _safe_int(row[3], 0, 4),
+            "wisdom_teeth_count": _safe_int(row[3], 0, 1),
             "impacted_wisdom_teeth_count": _safe_int(row[4], 0, 4),
         }
     except (TypeError, ValueError):
@@ -238,7 +238,7 @@ def save_doctor_label(
         new_image_name,
         _safe_int(caries, 0, 1),
         _safe_int(pulpitis, 0, 1),
-        _safe_int(wisdom_teeth_count, 0, 4),
+        _safe_int(wisdom_teeth_count, 0, 1),
         _safe_int(impacted_wisdom_teeth_count, 0, 4),
     ]
 
